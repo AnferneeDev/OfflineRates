@@ -1,8 +1,6 @@
+import { initDatabase } from "@/src/lib/database";
 import { Stack } from "expo-router";
 import { useEffect } from "react";
-
-// Make sure this path is correct for your project
-import { initDatabase } from "@/src/lib/database";
 
 export default function RootLayout() {
   useEffect(() => {
@@ -11,7 +9,7 @@ export default function RootLayout() {
         await initDatabase();
         console.log("Database initialized successfully");
       } catch (e) {
-        console.error("Error initializing database:", e);
+        console.error("Error initializing database: ", e);
       }
     }
     setupDatabase();
