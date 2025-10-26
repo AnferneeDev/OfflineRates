@@ -15,7 +15,7 @@ interface Service {
 // Mock Auth Context (replace with your real one)
 const useAuth = () => ({
   isAuthenticated: true,
-  userRole: "admin", // 'guest' or 'admin'
+  userRole: "guest", // 'guest' or 'admin'
   logout: () => console.log("logout"),
 });
 
