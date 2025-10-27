@@ -1,47 +1,67 @@
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { Alert, SafeAreaView, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Alert, SafeAreaView, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+
+// Import the real Supabase client
+import { supabase } from "@/src/lib/supabaseClient";
 
 // This is your new "Index" screen, which will function as the Login.
 export default function LoginScreen() {
-  const [username, setUsername] = useState("");
+  const [username, setUsername] = useState(""); // Assuming this is the email
   const [password, setPassword] = useState("");
   const [activeTab, setActiveTab] = useState("guest");
+  const [isLoading, setIsLoading] = useState(false); // Added loading state
   const router = useRouter();
 
-  // --- Mock Auth & Navigation Logic ---
-  // We'll replace this with your real context later.
-  // For now, this makes the component work.
+  // --- Real Supabase Admin Login ---
+  const handleAdminLogin = async () => {
+    setIsLoading(true); // Start loading
+    try {
+      // Use the real Supabase auth
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: username, // Pass the email (stored in username state)
+        password: password,
+      });
 
-  const login = (user: string, pass: string) => {
-    // Hardcoded credentials for the demo
-    if (user === "admin" && pass === "1234") {
-      return true;
+      if (error) {
+        // Show Supabase error message
+        Alert.alert("Login Failed", error.message || "Invalid credentials.");
+      } else if (data.session) {
+        // Successful login!
+        Alert.alert("Welcome Admin", "Successfully logged in.");
+        // Navigate to the services screen
+        router.push("/services");
+      } else {
+        // Should not happen if there's no error, but good to check
+        Alert.alert("Login Failed", "No session received. Please try again.");
+      }
+    } catch (e: any) {
+      // Catch any unexpected errors during the API call
+      Alert.alert("Login Error", e.message || "An unexpected error occurred.");
+    } finally {
+      setIsLoading(false); // Stop loading regardless of outcome
     }
-    return false;
   };
 
-  const loginAsGuest = () => {
-    // In the real app, this will set your auth context state
-  };
-  // --- End Mock Logic ---
+  // --- Guest Login ---
+  const handleGuestLogin = async () => {
+    // Make it async
+    try {
+      // Explicitly sign out any existing session
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error("Error signing out:", error.message);
+        Alert.alert("Error", "Could not switch to guest mode.");
+        return; // Stop if sign out failed
+      }
 
-  const handleAdminLogin = () => {
-    const success = login(username, password);
-    if (success) {
-      Alert.alert("Welcome Admin", "Successfully logged in as administrator");
-      // We will create the (tabs) group and services screen next
+      // Now proceed as guest
+      Alert.alert("Welcome Guest", "Browsing services as a guest");
       router.push("/services");
-    } else {
-      Alert.alert("Login Failed", "Invalid credentials. Please try again.");
+    } catch (e: any) {
+      console.error("Exception during guest login:", e);
+      Alert.alert("Error", "An unexpected error occurred.");
     }
-  };
-
-  const handleGuestLogin = () => {
-    loginAsGuest();
-    Alert.alert("Welcome Guest", "Browsing services as a guest");
-    // We will create the (tabs) group and services screen next
-    router.push("/services");
   };
 
   return (
@@ -59,10 +79,18 @@ export default function LoginScreen() {
           <View style={styles.cardContent}>
             {/* Manual Tabs */}
             <View style={styles.tabsList}>
-              <TouchableOpacity style={[styles.tabButton, activeTab === "guest" && styles.tabButtonActive]} onPress={() => setActiveTab("guest")}>
+              <TouchableOpacity
+                style={[styles.tabButton, activeTab === "guest" && styles.tabButtonActive]}
+                onPress={() => setActiveTab("guest")}
+                disabled={isLoading} // Disable while loading
+              >
                 <Text style={styles.tabButtonText}>(G) Guest</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={[styles.tabButton, activeTab === "admin" && styles.tabButtonActive]} onPress={() => setActiveTab("admin")}>
+              <TouchableOpacity
+                style={[styles.tabButton, activeTab === "admin" && styles.tabButtonActive]}
+                onPress={() => setActiveTab("admin")}
+                disabled={isLoading} // Disable while loading
+              >
                 <Text style={styles.tabButtonText}>(A) Admin</Text>
               </TouchableOpacity>
             </View>
@@ -73,7 +101,11 @@ export default function LoginScreen() {
               <View style={styles.tabContent}>
                 <Text style={styles.guestTitle}>Browse as Guest</Text>
                 <Text style={styles.guestDescription}>View and search hospital services and prices</Text>
-                <TouchableOpacity style={styles.button} onPress={handleGuestLogin}>
+                <TouchableOpacity
+                  style={[styles.button, isLoading && styles.buttonDisabled]}
+                  onPress={handleGuestLogin}
+                  disabled={isLoading} // Disable while loading
+                >
                   <Text style={styles.buttonText}>Continue as Guest</Text>
                 </TouchableOpacity>
               </View>
@@ -81,13 +113,15 @@ export default function LoginScreen() {
               // Admin Tab
               <View style={styles.tabContent}>
                 <View style={styles.inputGroup}>
-                  <Text style={styles.label}>Username</Text>
+                  <Text style={styles.label}>Admin Email</Text>
                   <TextInput
                     style={styles.input}
-                    placeholder="Enter admin username"
+                    placeholder="Enter admin email"
                     value={username}
-                    onChangeText={setUsername} // This is the React Native way
+                    onChangeText={setUsername}
                     autoCapitalize="none"
+                    keyboardType="email-address"
+                    editable={!isLoading} // Disable input while loading
                   />
                 </View>
                 <View style={styles.inputGroup}>
@@ -96,18 +130,27 @@ export default function LoginScreen() {
                     style={styles.input}
                     placeholder="Enter admin password"
                     value={password}
-                    onChangeText={setPassword} // This is the React Native way
-                    secureTextEntry // This hides the password
+                    onChangeText={setPassword}
+                    secureTextEntry
+                    editable={!isLoading} // Disable input while loading
                   />
                 </View>
 
-                {/* Security Warning */}
+                {/* Security Warning - You might remove this later */}
                 <View style={styles.warningBox}>
-                  <Text style={styles.warningText}>Security Warning: This demo uses hardcoded credentials (admin / 1234).</Text>
+                  <Text style={styles.warningText}>Ensure you have created an admin user in your Supabase project.</Text>
                 </View>
 
-                <TouchableOpacity style={styles.button} onPress={handleAdminLogin}>
-                  <Text style={styles.buttonText}>Login as Admin</Text>
+                <TouchableOpacity
+                  style={[styles.button, isLoading && styles.buttonDisabled]}
+                  onPress={handleAdminLogin}
+                  disabled={isLoading} // Disable button while loading
+                >
+                  {isLoading ? (
+                    <ActivityIndicator color="#ffffff" /> // Show spinner
+                  ) : (
+                    <Text style={styles.buttonText}>Login as Admin</Text>
+                  )}
                 </TouchableOpacity>
               </View>
             )}
@@ -118,13 +161,11 @@ export default function LoginScreen() {
   );
 }
 
-//
-// This is the replacement for CSS.
-//
+// Styles remain the same, adding styles for disabled state
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#f4f4f5", // bg-background
+    backgroundColor: "#f4f4f5",
   },
   container: {
     flex: 1,
@@ -217,6 +258,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingHorizontal: 12,
     fontSize: 16,
+    backgroundColor: "#ffffff", // Ensure background for disabled state
   },
   button: {
     height: 44,
@@ -224,6 +266,9 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     justifyContent: "center",
     alignItems: "center",
+  },
+  buttonDisabled: {
+    backgroundColor: "#a1a1aa", // Gray out button when loading
   },
   buttonText: {
     color: "#ffffff",
