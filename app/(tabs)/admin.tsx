@@ -1,4 +1,5 @@
 import { CategoryRow, ServiceInsert, ServiceRow, ServiceUpdate, supabase } from "@/src/lib/supabaseClient";
+import { Feather } from "@expo/vector-icons"; // --- ADDED THIS IMPORT ---
 import { useRouter } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import { ActivityIndicator, Alert, FlatList, Modal, SafeAreaView, ScrollView, StatusBar, Text, TextInput, TouchableOpacity, View } from "react-native";
@@ -20,6 +21,8 @@ export default function AdminScreen() {
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // --- NEW: State for the search bar ---
+  const [searchQuery, setSearchQuery] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingService, setEditingService] = useState<LocalService | null>(null);
   const [formData, setFormData] = useState(emptyForm);
@@ -56,7 +59,6 @@ export default function AdminScreen() {
     }
   }, [router]);
 
-  // In useEffect:
   useEffect(() => {
     fetchData();
 
@@ -65,22 +67,6 @@ export default function AdminScreen() {
         setImmediate(() => {
           router.replace("/");
         });
-      }
-    });
-
-    return () => {
-      authListener?.subscription.unsubscribe();
-    };
-  }, [fetchData, router]);
-
-  useEffect(() => {
-    fetchData();
-
-    const { data: authListener } = supabase.auth.onAuthStateChange((event) => {
-      if (event === "SIGNED_OUT") {
-        setTimeout(() => {
-          router.replace("/");
-        }, 100);
       }
     });
 
@@ -112,9 +98,7 @@ export default function AdminScreen() {
           description: formData.description || null,
           updated_at: new Date().toISOString(),
         };
-
         const { error } = await supabase.from("services").update(serviceUpdate).eq("id", editingService.id);
-
         if (error) throw error;
         Alert.alert("Service Updated", `${formData.name} updated.`);
       } else {
@@ -124,13 +108,10 @@ export default function AdminScreen() {
           price: priceNumber,
           description: formData.description || null,
         };
-
         const { error } = await supabase.from("services").insert(serviceInsert);
-
         if (error) throw error;
         Alert.alert("Service Added", `${serviceInsert.name} added.`);
       }
-
       closeModal();
       await fetchData();
     } catch (error: any) {
@@ -151,9 +132,7 @@ export default function AdminScreen() {
         onPress: async () => {
           try {
             const { error } = await supabase.from("services").delete().eq("id", id);
-
             if (error) throw error;
-
             Alert.alert("Service Deleted", `${service?.name} removed.`);
             await fetchData();
           } catch (error: any) {
@@ -187,23 +166,21 @@ export default function AdminScreen() {
     setFormData(emptyForm);
   };
 
-  const handleLogout = async () => {
-    setLoading(true);
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      Alert.alert("Logout Failed", error.message);
-      setLoading(false);
-    } else {
-      setImmediate(() => {
-        router.replace("/");
-      });
-    }
-  };
-
   const renderAdminItem = ({ item }: { item: LocalService }) => {
     const category = categories.find((c) => c.id === item.category_id);
     return <AdminServiceCard service={item} category={category} onEdit={() => openModal(item)} onDelete={() => handleDeleteService(item.id)} />;
   };
+
+  // --- NEW: Filtering logic for search ---
+  const filteredServices = services.filter((service) => {
+    const category = categories.find((c) => c.id === service.category_id);
+    const categoryName = category ? category.name : "";
+    const searchLower = searchQuery.toLowerCase();
+
+    const matchesSearch = service.name.toLowerCase().includes(searchLower) || (service.description && service.description.toLowerCase().includes(searchLower)) || categoryName.toLowerCase().includes(searchLower);
+
+    return matchesSearch;
+  });
 
   if (loading) {
     return (
@@ -218,41 +195,45 @@ export default function AdminScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-zinc-100">
-      <StatusBar
-        barStyle="dark-content" // Use "light-content" for a dark background
-        translucent={false}
-        backgroundColor="#555555" // Set to black
-        hidden={true}
-      />
-      <View className="bg-white px-4 py-3 border-b border-zinc-300 flex-row justify-between items-center">
-        <TouchableOpacity className="p-2" onPress={() => router.push("/services")}>
-          <Text className="text-base text-blue-500 font-medium">← Services</Text>
-        </TouchableOpacity>
-        <Text className="text-base font-semibold">Admin Dashboard</Text>
-        <TouchableOpacity className="p-2" onPress={handleLogout}>
-          <Text className="text-base text-red-500 font-medium">Logout</Text>
-        </TouchableOpacity>
+      <StatusBar barStyle="dark-content" translucent={false} backgroundColor="#ffffff" hidden={false} />
+
+      {/* --- MODIFIED: Header to match services.tsx --- */}
+      <View className="bg-white pt-12 pb-2.5 px-4 border-b border-zinc-200">
+        <View className="flex-row justify-between items-center mb-3">
+          {/* --- Title left-aligned, no emoji --- */}
+          <Text className="text-[22px] font-bold">Manage Services</Text>
+          {/* --- "+ Add" button moved here --- */}
+          <TouchableOpacity className="bg-blue-500 py-2 px-3.5 rounded-lg flex-row items-center" onPress={() => openModal(null)}>
+            <Text className="text-white font-semibold text-base">+ Add</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* --- MODIFIED: Search bar --- */}
+        <View className="flex-row gap-2 items-center">
+          {/* --- FIX: Replaced "🔍" emoji with Feather Icon --- */}
+          <View className="flex-1 flex-row items-center bg-zinc-300 rounded-lg px-3.5 h-14">
+            <Feather name="search" size={20} color="#71717a" className="mr-2" />
+            <TextInput className="flex-1 h-full px-2 text-base" placeholder="Search services..." value={searchQuery} onChangeText={setSearchQuery} />
+            {searchQuery.length > 0 && (
+              <TouchableOpacity onPress={() => setSearchQuery("")} className="p-1 ml-1">
+                <Text className="text-sm text-zinc-500">✕</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        </View>
       </View>
+      {/* --- END HEADER --- */}
 
       <FlatList
-        data={services}
+        // --- Data now uses filteredServices ---
+        data={filteredServices}
         renderItem={renderAdminItem}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={{ padding: 16, gap: 16 }}
-        ListHeaderComponent={
-          <View className="flex-row justify-between items-center mb-5">
-            <View>
-              <Text className="text-[28px] font-bold">Manage Services</Text>
-              <Text className="text-[15px] text-zinc-500 mt-1">Add, edit, or remove hospital services</Text>
-            </View>
-            <TouchableOpacity className="bg-blue-500 py-2.5 px-4 rounded-lg flex-row items-center" onPress={() => openModal(null)}>
-              <Text className="text-white font-semibold text-base ml-1">+ Add Service</Text>
-            </TouchableOpacity>
-          </View>
-        }
+        contentContainerStyle={{ padding: 16, gap: 16, paddingBottom: 32 }}
+        // --- Removed ListHeaderComponent ---
         ListEmptyComponent={
           <View className="flex-1 justify-center items-center py-16">
-            <Text className="text-base text-zinc-500 text-center">No services found. Add one!</Text>
+            <Text className="text-base text-zinc-500 text-center">{searchQuery.length > 0 ? "No services match your search." : "No services found. Add one!"}</Text>
           </View>
         }
       />
@@ -260,7 +241,7 @@ export default function AdminScreen() {
       <Modal visible={isModalOpen} animationType="slide" onRequestClose={closeModal}>
         <SafeAreaView className="flex-1 bg-zinc-50">
           <View className="flex-row justify-between items-center px-4 py-3 border-b border-zinc-200 bg-zinc-100">
-            <Text className="text-base font-semibold">{editingService ? "Edit Service" : "Add New Service"}</Text>
+            <Text className=" font-bold text-2xl">{editingService ? "Edit Service" : "Add New Service"}</Text>
             <TouchableOpacity onPress={closeModal}>
               <Text className="text-base text-blue-500 font-medium">Cancel</Text>
             </TouchableOpacity>
@@ -268,7 +249,7 @@ export default function AdminScreen() {
           <ScrollView className="flex-1 p-4">
             <View className="mb-5 gap-1.5">
               <Text className="text-[13px] text-zinc-500 uppercase">Service Name</Text>
-              <TextInput className="h-11 border border-zinc-300 rounded-lg px-3 text-base bg-white" value={formData.name} onChangeText={(text) => setFormData({ ...formData, name: text })} placeholder="e.g., Chest X-Ray" />
+              <TextInput className="h-13 border border-zinc-300 rounded-lg px-3 text-base bg-white" value={formData.name} onChangeText={(text) => setFormData({ ...formData, name: text })} placeholder="e.g., Chest X-Ray" />
             </View>
 
             <View className="mb-5 gap-1.5">
@@ -294,7 +275,7 @@ export default function AdminScreen() {
             <View className="mb-5 gap-1.5">
               <Text className="text-[13px] text-zinc-500 uppercase">Price ($)</Text>
               <TextInput
-                className="h-11 border border-zinc-300 rounded-lg px-3 text-base bg-white"
+                className="h-13 border border-zinc-300 rounded-lg px-3 text-base bg-white"
                 value={formData.price}
                 onChangeText={(text) => setFormData({ ...formData, price: text.replace(/[^0-9.]/g, "") })}
                 placeholder="0.00"
@@ -336,13 +317,16 @@ const AdminServiceCard = ({ service, category, onEdit, onDelete }: { service: Lo
         {service.description && <Text className="text-[15px] text-zinc-600 leading-5">{service.description}</Text>}
       </View>
       <View className="items-end justify-between min-h-[60px]">
-        <Text className="text-base font-semibold mb-3">${service.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</Text>
+        {/* --- Price text remains blue and bold --- */}
+        <Text className="text-lg font-bold text-blue-500 mb-3">${service.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</Text>
         <View className="flex-row gap-2.5">
-          <TouchableOpacity className="py-1.5 px-3 rounded-md border border-blue-500" onPress={onEdit}>
-            <Text className="text-[15px] font-medium text-blue-500">Edit</Text>
+          {/* --- FIX: Replaced "Edit" text with Feather Icon --- */}
+          <TouchableOpacity className="h-9 w-9 justify-center items-center rounded-md border border-blue-500" onPress={onEdit}>
+            <Feather name="edit-2" size={16} color="#3b82f6" />
           </TouchableOpacity>
-          <TouchableOpacity className="py-1.5 px-3 rounded-md border border-red-500" onPress={onDelete}>
-            <Text className="text-[15px] font-medium text-red-500">Delete</Text>
+          {/* --- FIX: Replaced "Delete" text with Feather Icon --- */}
+          <TouchableOpacity className="h-9 w-9 justify-center items-center rounded-md border border-red-500" onPress={onDelete}>
+            <Feather name="trash-2" size={16} color="#ef4444" />
           </TouchableOpacity>
         </View>
       </View>

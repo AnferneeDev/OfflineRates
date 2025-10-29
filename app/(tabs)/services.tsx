@@ -2,6 +2,7 @@ import { categories as mockCategories } from "@/src/data/services";
 // MODIFIED: Import Service type
 import { Category, fetchLocalCategories, fetchLocalServices, Service, ServiceWithCategory, syncDatabase } from "@/src/lib/database";
 import { supabase } from "@/src/lib/supabaseClient";
+import { Feather } from "@expo/vector-icons"; // This import is already here
 import { useNetInfo } from "@react-native-community/netinfo";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
@@ -48,7 +49,6 @@ const Checkbox = ({ label, icon, value, onToggle }: { label: string; icon: strin
 // --- END Checkbox ---
 
 export default function ServicesScreen() {
-  // --- FIX 1: Removed unused variables 'isAuthenticated' and 'userRole' ---
   const { logout } = useAuth();
   const router = useRouter();
   const netInfo = useNetInfo();
@@ -56,8 +56,6 @@ export default function ServicesScreen() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [services, setServices] = useState<ServiceWithCategory[]>([]);
-
-  // --- FIX 2: Changed state type to only store what's needed for the filter ---
   const [localCategories, setLocalCategories] = useState<{ id: string; name: string }[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSyncing, setIsSyncing] = useState(false);
@@ -81,24 +79,16 @@ export default function ServicesScreen() {
             Alert.alert("Sync Error", "Could not fetch latest data from server. Using local data.");
           } else {
             console.log("ServicesScreen: Fetched from Supabase. Syncing local DB...");
-
-            // --- FIX 3: Filter AND Map to match local Service type ---
             const validCategories = (supabaseCategories || []).filter((cat): cat is Category => !!cat);
-
-            // 1. Filter out services without a category_id
             const validServices: Service[] = (supabaseServices || [])
-              .filter((serv) => !!serv.category_id) // Ensure category_id is not null
+              .filter((serv) => !!serv.category_id)
               .map((serv) => {
-                // 2. Map the Supabase object to the local Service type
                 return {
                   ...serv,
-                  // We know category_id is not null here due to the filter
                   category_id: serv.category_id!,
-                  // Convert description from (string | null) to (string | undefined)
                   description: serv.description ?? undefined,
                 };
               });
-            // --- END FIX 3 ---
 
             await syncDatabase(validCategories, validServices);
             console.log("ServicesScreen: Local DB synced.");
@@ -111,10 +101,12 @@ export default function ServicesScreen() {
         console.log("ServicesScreen: Fetching local services and categories...");
         const [fetchedServices, fetchedCategories] = await Promise.all([fetchLocalServices(), fetchLocalCategories()]);
         console.log(`ServicesScreen: Fetched ${fetchedServices.length} services and ${fetchedCategories.length} categories locally.`);
-        setServices(fetchedServices);
 
-        // --- FIX 4: Normalize data before setting state ---
-        // We only store id and name, which both Category and mockCategory have.
+        // --- FIX: Sort services alphabetically by name ---
+        const sortedServices = fetchedServices.sort((a, b) => a.name.localeCompare(b.name));
+        setServices(sortedServices);
+        // --- END FIX ---
+
         const categoriesForState = fetchedCategories.length > 0 ? fetchedCategories : mockCategories;
         setLocalCategories(
           categoriesForState.map((cat) => ({
@@ -122,19 +114,16 @@ export default function ServicesScreen() {
             name: cat.name,
           }))
         );
-        // --- END FIX 4 ---
       } catch (error) {
         console.error("ServicesScreen: Error during data load/sync:", error);
         Alert.alert("Error", "Could not load service data.");
         setServices([]);
-        // --- FIX 5: Also normalize mockCategories on error ---
         setLocalCategories(
           mockCategories.map((cat) => ({
             id: cat.id,
             name: cat.name,
           }))
         );
-        // --- END FIX 5 ---
       } finally {
         setIsLoading(false);
         setIsSyncing(false);
@@ -147,7 +136,7 @@ export default function ServicesScreen() {
     } else {
       console.log("ServicesScreen: Waiting for network state...");
     }
-  }, [netInfo.isConnected]); // Removed isAuthenticated and router
+  }, [netInfo.isConnected]);
 
   const handleCategoryToggle = (category: string) => {
     setSelectedCategories((prev) => (prev.includes(category) ? prev.filter((c) => c !== category) : [...prev, category]));
@@ -188,8 +177,7 @@ export default function ServicesScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-zinc-100">
-      {/* --- NOT TOUCHED --- */}
-      <StatusBar barStyle="dark-content" translucent={false} hidden={false} />
+      <StatusBar barStyle="dark-content" translucent={false} hidden={false} backgroundColor={"#ffffff"} />
       {/* Header */}
       <View className="bg-white pt-12 pb-2.5 px-4 border-b border-zinc-200">
         {netInfo.isConnected === false && (
@@ -206,18 +194,16 @@ export default function ServicesScreen() {
         <View className="flex-row justify-between items-center mb-3">
           <Text className="text-[22px] font-bold">Hospital Services</Text>
           <View className="flex-row gap-2 items-center">
-            {/* --- MODIFIED: Admin button REMOVED --- */}
-            {/* --- MODIFIED: Logout button height/width changed to h-14/w-14 --- */}
             <TouchableOpacity className="h-10 w-14 justify-center items-center rounded-lg bg-zinc-100 border border-zinc-400" onPress={handleLogout}>
-              <Text className="text-lg text-red-500">❌</Text>
+              <Feather name="log-out" size={22} color="#ef4444" />
             </TouchableOpacity>
           </View>
         </View>
 
         <View className="flex-row gap-2 items-center">
-          {/* --- MODIFIED: Search bar height changed to h-14 --- */}
-          <View className="flex-1 flex-row items-center bg-zinc-300 rounded-lg px-2.5 h-14">
-            <Text className="text-base text-zinc-500 mr-1.5">🔍</Text>
+          {/* --- FIX: Replaced "🔍" emoji with Feather Icon --- */}
+          <View className="flex-1 flex-row items-center bg-zinc-300 rounded-lg px-3.5 h-14">
+            <Feather name="search" size={20} color="#71717a" className="mr-2" />
             <TextInput className="flex-1 h-full px-2 text-base" placeholder="Search services..." value={searchQuery} onChangeText={setSearchQuery} />
             {searchQuery.length > 0 && (
               <TouchableOpacity onPress={() => setSearchQuery("")} className="p-1 ml-1">
@@ -225,8 +211,10 @@ export default function ServicesScreen() {
               </TouchableOpacity>
             )}
           </View>
-          {/* --- MODIFIED: Filter button height changed to h-14 --- */}
-          <TouchableOpacity className="h-14 px-3 justify-center items-center rounded-lg bg-zinc-100 border border-zinc-400" onPress={() => setIsFilterModalVisible(true)}>
+
+          {/* --- FIX: Added Feather Icon to FILTER button --- */}
+          <TouchableOpacity className="h-14 px-4 justify-center items-center rounded-lg bg-zinc-100 border border-zinc-400 flex-row gap-2" onPress={() => setIsFilterModalVisible(true)}>
+            <Feather name="filter" size={16} color="#000000" />
             <Text className="text-sm font-semibold text-black">FILTER</Text>
           </TouchableOpacity>
         </View>
@@ -246,7 +234,6 @@ export default function ServicesScreen() {
       />
 
       {/* Filter Modal */}
-      {/* --- FIX: Changed animationType from "slide" to "fade" --- */}
       <Modal visible={isFilterModalVisible} animationType="fade" transparent={true} onRequestClose={() => setIsFilterModalVisible(false)}>
         <View className="flex-1 bg-black/40 justify-end">
           <TouchableOpacity style={StyleSheet.absoluteFill} onPress={() => setIsFilterModalVisible(false)} />
@@ -258,7 +245,6 @@ export default function ServicesScreen() {
               </TouchableOpacity>
             </View>
             <ScrollView className="px-4 pb-4">
-              {/* This map now works because localCategories is {id, name}[] */}
               {localCategories.map((category) => (
                 <Checkbox key={category.id} label={category.name} icon={mockCategories.find((mc) => mc.id === category.id)?.icon || "?"} value={selectedCategories.includes(category.id)} onToggle={() => handleCategoryToggle(category.id)} />
               ))}

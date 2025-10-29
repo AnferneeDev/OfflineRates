@@ -1,4 +1,5 @@
 import { supabase } from "@/src/lib/supabaseClient";
+import { Feather } from "@expo/vector-icons"; // 1. Import an icon library
 import { Session } from "@supabase/supabase-js";
 import { Tabs, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
@@ -9,6 +10,7 @@ export default function TabLayout() {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
+  // ... (your useEffect and loading logic is all correct) ...
   useEffect(() => {
     console.log("TabLayout mounted, fetching session...");
 
@@ -54,7 +56,7 @@ export default function TabLayout() {
       console.log("TabLayout unmounting, unsubscribing listener");
       authListener?.subscription.unsubscribe();
     };
-  }, []);
+  }, [router]);
 
   if (loading) {
     console.log("Still loading session...");
@@ -76,14 +78,18 @@ export default function TabLayout() {
       <Tabs.Screen
         name="services"
         options={{
-          title: "Services",
+          title: "Services", // This is the text
+          // 2. This is the icon
+          tabBarIcon: ({ color, size }) => <Feather name="list" size={size} color={color} />,
         }}
       />
       <Tabs.Screen
         name="admin"
         options={{
-          title: "Admin",
+          title: "Admin", // This is the text
           href: session ? "/admin" : null,
+          // 2. This is the icon
+          tabBarIcon: ({ color, size }) => <Feather name="settings" size={size} color={color} />,
         }}
       />
     </Tabs>
