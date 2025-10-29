@@ -93,7 +93,11 @@ export default function LoginScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-zinc-100">
-      <StatusBar barStyle="dark-content" />
+      <StatusBar
+        barStyle="dark-content" // Use "light-content" for a dark background
+        translucent={false}
+        hidden={true}
+      />
 
       <View className="flex-1 justify-center items-center p-4">
         <View className="w-full max-w-[400px] bg-white rounded-xl">

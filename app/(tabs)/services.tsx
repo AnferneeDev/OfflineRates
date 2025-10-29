@@ -146,7 +146,12 @@ export default function ServicesScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-zinc-100">
-      <StatusBar barStyle="dark-content" />
+      <StatusBar
+        barStyle="dark-content" // Use "light-content" for a dark background
+        translucent={false}
+        backgroundColor="#555555" // Set to black
+        hidden={true}
+      />
       {/* Header */}
       <View className="bg-white pt-2.5 pb-2.5 px-4 border-b border-zinc-200">
         {netInfo.isConnected === false && (

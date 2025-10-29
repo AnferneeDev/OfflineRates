@@ -218,7 +218,12 @@ export default function AdminScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-zinc-100">
-      <StatusBar barStyle="dark-content" />
+      <StatusBar
+        barStyle="dark-content" // Use "light-content" for a dark background
+        translucent={false}
+        backgroundColor="#555555" // Set to black
+        hidden={true}
+      />
       <View className="bg-white px-4 py-3 border-b border-zinc-300 flex-row justify-between items-center">
         <TouchableOpacity className="p-2" onPress={() => router.push("/services")}>
           <Text className="text-base text-blue-500 font-medium">← Services</Text>
