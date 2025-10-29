@@ -1,8 +1,10 @@
+import { categories as mockCategories } from "@/src/data/services"; // --- ADDED IMPORT ---
 import { CategoryRow, ServiceInsert, ServiceRow, ServiceUpdate, supabase } from "@/src/lib/supabaseClient";
-import { Feather } from "@expo/vector-icons"; // --- ADDED THIS IMPORT ---
+import { Feather } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
-import { ActivityIndicator, Alert, FlatList, Modal, SafeAreaView, ScrollView, StatusBar, Text, TextInput, TouchableOpacity, View } from "react-native";
+// --- ADDED StyleSheet ---
+import { ActivityIndicator, Alert, FlatList, Modal, SafeAreaView, ScrollView, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 
 type LocalService = ServiceRow;
 type LocalCategory = CategoryRow;
@@ -21,13 +23,17 @@ export default function AdminScreen() {
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // --- NEW: State for the search bar ---
   const [searchQuery, setSearchQuery] = useState("");
+  // --- ADDED FILTER STATES ---
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [isFilterModalVisible, setIsFilterModalVisible] = useState(false);
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingService, setEditingService] = useState<LocalService | null>(null);
   const [formData, setFormData] = useState(emptyForm);
 
   const fetchData = useCallback(async () => {
+    // ... (fetchData logic is unchanged) ...
     console.log("AdminScreen: Fetching data from Supabase...");
     setLoading(true);
     try {
@@ -60,6 +66,7 @@ export default function AdminScreen() {
   }, [router]);
 
   useEffect(() => {
+    // ... (useEffect logic is unchanged) ...
     fetchData();
 
     const { data: authListener } = supabase.auth.onAuthStateChange((event) => {
@@ -76,6 +83,7 @@ export default function AdminScreen() {
   }, [fetchData, router]);
 
   const handleFormSubmit = async () => {
+    // ... (handleFormSubmit logic is unchanged) ...
     if (!formData.name || !formData.category_id || !formData.price) {
       Alert.alert("Missing Fields", "Please fill in name, category, and price.");
       return;
@@ -123,6 +131,7 @@ export default function AdminScreen() {
   };
 
   const handleDeleteService = (id: string) => {
+    // ... (handleDeleteService logic is unchanged) ...
     const service = services.find((s) => s.id === id);
     Alert.alert("Delete Service", `Are you sure you want to delete "${service?.name}"?`, [
       { text: "Cancel", style: "cancel" },
@@ -145,6 +154,7 @@ export default function AdminScreen() {
   };
 
   const openModal = (service: LocalService | null) => {
+    // ... (openModal logic is unchanged) ...
     if (service) {
       setEditingService(service);
       setFormData({
@@ -161,9 +171,30 @@ export default function AdminScreen() {
   };
 
   const closeModal = () => {
+    // ... (closeModal logic is unchanged) ...
     setIsModalOpen(false);
     setEditingService(null);
     setFormData(emptyForm);
+  };
+
+  // --- ADDED LOGOUT FUNCTION ---
+  const handleLogout = async () => {
+    setLoading(true); // Show loading spinner
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      Alert.alert("Logout Failed", error.message);
+      setLoading(false); // Hide spinner on error
+    } else {
+      setImmediate(() => {
+        router.replace("/");
+        // Loading will be false on the new screen
+      });
+    }
+  };
+
+  // --- ADDED CATEGORY TOGGLE FUNCTION ---
+  const handleCategoryToggle = (category: string) => {
+    setSelectedCategories((prev) => (prev.includes(category) ? prev.filter((c) => c !== category) : [...prev, category]));
   };
 
   const renderAdminItem = ({ item }: { item: LocalService }) => {
@@ -171,7 +202,7 @@ export default function AdminScreen() {
     return <AdminServiceCard service={item} category={category} onEdit={() => openModal(item)} onDelete={() => handleDeleteService(item.id)} />;
   };
 
-  // --- NEW: Filtering logic for search ---
+  // --- UPDATED FILTERING LOGIC ---
   const filteredServices = services.filter((service) => {
     const category = categories.find((c) => c.id === service.category_id);
     const categoryName = category ? category.name : "";
@@ -179,7 +210,10 @@ export default function AdminScreen() {
 
     const matchesSearch = service.name.toLowerCase().includes(searchLower) || (service.description && service.description.toLowerCase().includes(searchLower)) || categoryName.toLowerCase().includes(searchLower);
 
-    return matchesSearch;
+    // --- ADDED THIS LINE ---
+    const matchesCategory = selectedCategories.length === 0 || (service.category_id && selectedCategories.includes(service.category_id));
+
+    return matchesSearch && matchesCategory; // --- UPDATED THIS LINE ---
   });
 
   if (loading) {
@@ -197,20 +231,24 @@ export default function AdminScreen() {
     <SafeAreaView className="flex-1 bg-zinc-100">
       <StatusBar barStyle="dark-content" translucent={false} backgroundColor="#ffffff" hidden={false} />
 
-      {/* --- MODIFIED: Header to match services.tsx --- */}
+      {/* --- MODIFIED: Header --- */}
       <View className="bg-white pt-12 pb-2.5 px-4 border-b border-zinc-200">
         <View className="flex-row justify-between items-center mb-3">
-          {/* --- Title left-aligned, no emoji --- */}
           <Text className="text-[22px] font-bold">Manage Services</Text>
-          {/* --- "+ Add" button moved here --- */}
-          <TouchableOpacity className="bg-blue-500 py-2 px-3.5 rounded-lg flex-row items-center" onPress={() => openModal(null)}>
-            <Text className="text-white font-semibold text-base">+ Add</Text>
-          </TouchableOpacity>
+          {/* --- MODIFIED: Added flex-row and logout button --- */}
+          <View className="flex-row gap-2 items-center">
+            <TouchableOpacity className="bg-blue-500 py-2 px-3.5 rounded-lg flex-row items-center" onPress={() => openModal(null)}>
+              <Text className="text-white font-semibold text-base">+ Add</Text>
+            </TouchableOpacity>
+            {/* --- ADDED LOGOUT BUTTON --- */}
+            <TouchableOpacity className="h-10 w-14 justify-center items-center rounded-lg bg-zinc-100 border border-zinc-400" onPress={handleLogout}>
+              <Feather name="log-out" size={22} color="#ef4444" />
+            </TouchableOpacity>
+          </View>
         </View>
 
-        {/* --- MODIFIED: Search bar --- */}
+        {/* --- MODIFIED: Search bar View --- */}
         <View className="flex-row gap-2 items-center">
-          {/* --- FIX: Replaced "🔍" emoji with Feather Icon --- */}
           <View className="flex-1 flex-row items-center bg-zinc-300 rounded-lg px-3.5 h-14">
             <Feather name="search" size={20} color="#71717a" className="mr-2" />
             <TextInput className="flex-1 h-full px-2 text-base" placeholder="Search services..." value={searchQuery} onChangeText={setSearchQuery} />
@@ -220,17 +258,20 @@ export default function AdminScreen() {
               </TouchableOpacity>
             )}
           </View>
+          {/* --- ADDED FILTER BUTTON --- */}
+          <TouchableOpacity className="h-14 px-4 justify-center items-center rounded-lg bg-zinc-100 border border-zinc-400 flex-row gap-2" onPress={() => setIsFilterModalVisible(true)}>
+            <Feather name="filter" size={16} color="#000000" />
+            <Text className="text-sm font-semibold text-black">FILTER</Text>
+          </TouchableOpacity>
         </View>
       </View>
       {/* --- END HEADER --- */}
 
       <FlatList
-        // --- Data now uses filteredServices ---
         data={filteredServices}
         renderItem={renderAdminItem}
         keyExtractor={(item) => item.id}
         contentContainerStyle={{ padding: 16, gap: 16, paddingBottom: 32 }}
-        // --- Removed ListHeaderComponent ---
         ListEmptyComponent={
           <View className="flex-1 justify-center items-center py-16">
             <Text className="text-base text-zinc-500 text-center">{searchQuery.length > 0 ? "No services match your search." : "No services found. Add one!"}</Text>
@@ -238,15 +279,17 @@ export default function AdminScreen() {
         }
       />
 
+      {/* --- ADD NEW SERVICE MODAL --- */}
       <Modal visible={isModalOpen} animationType="slide" onRequestClose={closeModal}>
         <SafeAreaView className="flex-1 bg-zinc-50">
           <View className="flex-row justify-between items-center px-4 py-3 border-b border-zinc-200 bg-zinc-100">
-            <Text className=" font-bold text-2xl">{editingService ? "Edit Service" : "Add New Service"}</Text>
+            <Text className="text-2x1 font-semibold">{editingService ? "Edit Service" : "Add New Service"}</Text>
             <TouchableOpacity onPress={closeModal}>
               <Text className="text-base text-blue-500 font-medium">Cancel</Text>
             </TouchableOpacity>
           </View>
           <ScrollView className="flex-1 p-4">
+            {/* ... (Form inputs are unchanged) ... */}
             <View className="mb-5 gap-1.5">
               <Text className="text-[13px] text-zinc-500 uppercase">Service Name</Text>
               <TextInput className="h-13 border border-zinc-300 rounded-lg px-3 text-base bg-white" value={formData.name} onChangeText={(text) => setFormData({ ...formData, name: text })} placeholder="e.g., Chest X-Ray" />
@@ -287,12 +330,11 @@ export default function AdminScreen() {
             <View className="mb-5 gap-1.5">
               <Text className="text-[13px] text-zinc-500 uppercase">Description</Text>
               <TextInput
-                className="min-h-[100px] border border-zinc-300 rounded-lg px-3 pt-3 text-base bg-white"
+                className=" border border-zinc-300 rounded-lg px-3 pt-3 text-base bg-white"
                 value={formData.description}
                 onChangeText={(text) => setFormData({ ...formData, description: text })}
                 placeholder="Service description (optional)"
                 multiline
-                textAlignVertical="top"
               />
             </View>
 
@@ -302,10 +344,36 @@ export default function AdminScreen() {
           </ScrollView>
         </SafeAreaView>
       </Modal>
+
+      {/* --- ADDED FILTER MODAL --- */}
+      <Modal visible={isFilterModalVisible} animationType="fade" transparent={true} onRequestClose={() => setIsFilterModalVisible(false)}>
+        <View className="flex-1 bg-black/40 justify-end">
+          <TouchableOpacity style={StyleSheet.absoluteFill} onPress={() => setIsFilterModalVisible(false)} />
+          <View className="bg-white max-h-[75%] rounded-t-[20px] overflow-hidden pt-2">
+            <View className="flex-row justify-between items-center px-4 py-3 border-b border-zinc-200">
+              <Text className="text-lg font-semibold">Filter by Category</Text>
+              <TouchableOpacity onPress={() => setIsFilterModalVisible(false)}>
+                <Text className="text-base text-blue-500 font-semibold">Done</Text>
+              </TouchableOpacity>
+            </View>
+            <ScrollView className="px-4 pb-4">
+              {categories.map((category) => (
+                <Checkbox key={category.id} label={category.name} icon={mockCategories.find((mc) => mc.id === category.id)?.icon || "?"} value={selectedCategories.includes(category.id)} onToggle={() => handleCategoryToggle(category.id)} />
+              ))}
+            </ScrollView>
+            {selectedCategories.length > 0 && (
+              <TouchableOpacity className="h-11 justify-center items-center rounded-lg bg-zinc-100 mx-4 mb-4 mt-2" onPress={() => setSelectedCategories([])}>
+                <Text className="text-base font-medium text-blue-500">Clear All Filters</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
 
+// --- ADMIN SERVICE CARD (Unchanged) ---
 const AdminServiceCard = ({ service, category, onEdit, onDelete }: { service: LocalService; category: LocalCategory | undefined; onEdit: () => void; onDelete: () => void }) => (
   <View className="bg-white rounded-[10px] shadow-sm">
     <View className="flex-row justify-between p-4">
@@ -317,14 +385,11 @@ const AdminServiceCard = ({ service, category, onEdit, onDelete }: { service: Lo
         {service.description && <Text className="text-[15px] text-zinc-600 leading-5">{service.description}</Text>}
       </View>
       <View className="items-end justify-between min-h-[60px]">
-        {/* --- Price text remains blue and bold --- */}
         <Text className="text-lg font-bold text-blue-500 mb-3">${service.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</Text>
         <View className="flex-row gap-2.5">
-          {/* --- FIX: Replaced "Edit" text with Feather Icon --- */}
           <TouchableOpacity className="h-9 w-9 justify-center items-center rounded-md border border-blue-500" onPress={onEdit}>
             <Feather name="edit-2" size={16} color="#3b82f6" />
           </TouchableOpacity>
-          {/* --- FIX: Replaced "Delete" text with Feather Icon --- */}
           <TouchableOpacity className="h-9 w-9 justify-center items-center rounded-md border border-red-500" onPress={onDelete}>
             <Feather name="trash-2" size={16} color="#ef4444" />
           </TouchableOpacity>
@@ -332,4 +397,14 @@ const AdminServiceCard = ({ service, category, onEdit, onDelete }: { service: Lo
       </View>
     </View>
   </View>
+);
+
+// --- ADDED CHECKBOX COMPONENT ---
+const Checkbox = ({ label, icon, value, onToggle }: { label: string; icon: string; value: boolean; onToggle: () => void }) => (
+  <TouchableOpacity className="flex-row items-center py-3.5 border-b border-zinc-200" onPress={onToggle}>
+    <View className={`w-5 h-5 border-2 rounded-md mr-4 justify-center items-center ${value ? "bg-blue-500 border-blue-500" : "border-zinc-400"}`}>{value && <Text className="text-white text-xs font-bold">✓</Text>}</View>
+    <Text className="text-base flex-1">
+      {icon} {label}
+    </Text>
+  </TouchableOpacity>
 );

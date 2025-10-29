@@ -31,7 +31,7 @@ export default function LoginScreen() {
         // Successful login!
         Alert.alert("Welcome Admin", "Successfully logged in.");
         // Navigate to the services screen
-        router.push("/services");
+        router.push("/admin");
       } else {
         // Should not happen if there's no error, but good to check
         Alert.alert("Login Failed", "No session received. Please try again.");

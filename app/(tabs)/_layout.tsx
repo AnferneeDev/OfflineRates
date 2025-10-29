@@ -10,7 +10,7 @@ export default function TabLayout() {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
-  // ... (your useEffect and loading logic is all correct) ...
+  // ... (useEffect and loading logic is fine) ...
   useEffect(() => {
     console.log("TabLayout mounted, fetching session...");
 
@@ -72,6 +72,7 @@ export default function TabLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
+        // --- FIX: Global rule only handles logged-out state ---
         tabBarStyle: session ? {} : { display: "none" },
       }}
     >
@@ -79,8 +80,8 @@ export default function TabLayout() {
         name="services"
         options={{
           title: "Services", // This is the text
-          // 2. This is the icon
           tabBarIcon: ({ color, size }) => <Feather name="list" size={size} color={color} />,
+          // This screen will use the default tabBarStyle (visible when logged in)
         }}
       />
       <Tabs.Screen
@@ -88,8 +89,9 @@ export default function TabLayout() {
         options={{
           title: "Admin", // This is the text
           href: session ? "/admin" : null,
-          // 2. This is the icon
           tabBarIcon: ({ color, size }) => <Feather name="settings" size={size} color={color} />,
+          // --- FIX: Add this line to hide the tab bar ONLY for this screen ---
+          tabBarStyle: { display: "none" },
         }}
       />
     </Tabs>
