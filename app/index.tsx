@@ -135,7 +135,7 @@ export default function LoginScreen() {
               // Guest Tab
 
               <View className="mt-6 gap-4">
-                <Text className="text-xl font-semibold text-center">Browse as Gawdsdswduest</Text>
+                <Text className="text-xl font-semibold text-center">Enter as guest</Text>
                 <Text className="text-sm text-zinc-500 text-center">View and search hospital services and prices</Text>
                 <TouchableOpacity className={`h-11 rounded-lg justify-center items-center ${isLoading ? "bg-zinc-400" : "bg-zinc-900"}`} onPress={handleGuestLogin} disabled={isLoading}>
                   <Text className="text-white text-base font-medium">Continue as Guest</Text>
