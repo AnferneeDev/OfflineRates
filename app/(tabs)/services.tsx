@@ -149,7 +149,6 @@ export default function ServicesScreen() {
       <StatusBar
         barStyle="dark-content" // Use "light-content" for a dark background
         translucent={false}
-        backgroundColor="#555555" // Set to black
         hidden={true}
       />
       {/* Header */}
