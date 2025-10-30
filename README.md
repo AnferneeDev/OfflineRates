@@ -1,50 +1,239 @@
-# Welcome to your Expo app 👋
+# OfflineRates
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+<div align="center">
 
-## Get started
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-offlinerates.vercel.app-brightgreen?style=for-the-badge)](https://offlinerates.vercel.app)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/anfernee-pichardo-0787a637a/)
+![React Native](https://img.shields.io/badge/React%20Native-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
+![Expo](https://img.shields.io/badge/Expo-000020?style=for-the-badge&logo=expo&logoColor=white)
+![Supabase](https://img.shields.io/badge/Supabase-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white)
+![SQLite](https://img.shields.io/badge/SQLite-003B57?style=for-the-badge&logo=sqlite&logoColor=white)
+![NativeWind](https://img.shields.io/badge/NativeWind-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
+![License](https://img.shields.io/badge/License-Proprietary-red.svg?style=for-the-badge)
 
-1. Install dependencies
+</div>
 
-   ```bash
-   npm install
-   ```
+---
 
-2. Start the app
+## Table of Contents
 
-   ```bash
-   npx expo start
-   ```
+- [About The Project](#about-the-project)
 
-In the output, you'll find options to open the app in a
+- [Core Features](#core-features)
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+- [Tech Stack](#tech-stack)
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+- [Getting Started](#getting-started)
 
-## Get a fresh project
+- [Database Setup](#database-setup)
 
-When you're ready, run:
+- [License](#license)
 
-```bash
-npm run reset-project
+- [Contact](#contact)
+
+---
+
+## About The Project
+
+OfflineRates is a mobile application for browsing hospital service prices. It is designed to be offline-first, syncing with a central Supabase database when an internet connection is available, but storing all data locally in an SQLite database for high performance and 100% offline access.
+
+It features two primary roles: a public-facing "Guest" mode for browsing, and a secure "Admin" mode for managing the services and categories.
+
+---
+
+## Core Features
+
+- **Offline-First Architecture**: All data is stored in a local SQLite database, allowing the app to be fully functional without an internet connection.
+
+- **Online/Offline Sync**: Automatically detects network status. When online, it syncs the local database with the remote Supabase backend.
+
+- **Guest & Admin Roles**:
+
+- _Guest View_: A public, read-only interface for browsing and filtering hospital services.
+
+- _Admin Dashboard_: A secure panel (requires Supabase Auth) for Creating, Reading, Updating, and Deleting (CRUD) services and categories.
+
+- **Dynamic Search & Filtering**: Fast, client-side search and multi-category filtering powered by local data.
+
+- **Cross-Platform**: Built with React Native (Expo) to run natively on both iOS and Android from a single codebase.
+
+---
+
+## Tech Stack
+
+- Framework: React Native (Expo)
+
+- Database (Remote): Supabase (PostgreSQL)
+
+- Database (Local): Expo-SQLite
+
+- Styling: NativeWind (Tailwind for React Native)
+
+- Language: TypeScript
+
+- Auth: Supabase Auth
+
+---
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js (v18 or higher)
+
+- npm or yarn
+
+- Expo Go app on your mobile device (or an emulator)
+
+- A Supabase project
+
+### Local Setup
+
+# Clone the repository
+
+`git clone https://github.com/AnferneeDev/OfflineRates.git`
+
+# Navigate to the project directory
+
+`cd OfflineRates`
+
+# Install dependencies
+
+`npm install`
+
+### Environment Variables
+
+You must have a Supabase project set up. Find your project's URL and Anon Key and add them to your project (e.g., in `src/lib/supabaseClient.ts` or a `.env` file).
+
+```ts
+const  supabaseUrl = "https://YOUR_SUPABASE_URL.supabase.co";
+const  supabaseAnonKey = "YOUR_SUPABASE_ANON_KEY";
+
+export  const  supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+### Run Development Server
 
-## Learn more
+`npx  expo  start`
 
-To learn more about developing your project with Expo, look at the following resources:
+Scan the QR code with the Expo Go app on your phone.
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+---
 
-## Join the community
+## Database Setup
 
-Join our community of developers creating universal apps.
+The app relies on a specific schema in Supabase. All tables should be created in the `app` schema.
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+### Categories Table
+
+```
+`sql
+
+create  table  app.categories (
+
+id  uuid  not  null  default  gen_random_uuid (),
+
+name  text  not  null,
+
+created_at  timestamp  with  time  zone  null  default  now(),
+
+updated_at  timestamp  with  time  zone  null  default  now(),
+
+icon  text  null,
+
+constraint  categories_pkey  primary  key (id),
+
+constraint  categories_name_key  unique (name)
+
+);
+
+```
+
+### Services Table
+
+```
+`sql
+
+create  table  app.services (
+
+id  uuid  not  null  default  gen_random_uuid (),
+
+category_id  uuid  null,
+
+name  text  not  null,
+
+price  numeric(10, 2) not  null,
+
+description  text  null,
+
+created_at  timestamp  with  time  zone  null  default  now(),
+
+updated_at  timestamp  with  time  zone  null  default  now(),
+
+constraint  services_pkey  primary  key (id),
+
+constraint  services_category_id_fkey  foreign  key (category_id) references  app.categories (id) on  delete  set  null
+
+);
+
+```
+
+### Adding Data
+
+- **Manual Entry**: Use Supabase Table Editor to insert rows into `categories` and `services`.
+
+- **CSV Import (Recommended)**:
+
+- Import `categories.csv` first, then `services.csv`.
+
+Example `categories.csv`:
+
+```
+`csv
+id,name,icon
+
+f47ac10b-58cc-4372-a567-0e02b2c3d479,Cardiology,❤️
+
+3d4bc659-2815-4f0c-bf55-b541173a51fa,Radiology,☢️
+
+5e8a4a22-5e87-4d1c-8b8a-3d5f3a0c0e3f,Neurology,🧠
+
+```
+
+Example `services.csv`:
+
+```
+`csv
+
+category_id,name,price,description
+
+f47ac10b-58cc-4372-a567-0e02b2c3d479,Echocardiogram,350.00,"Ultrasound of the heart"
+
+3d4bc659-2815-4f0c-bf55-b541173a51fa,Chest  X-Ray,180.00,"Standard two-view chest X-ray"
+
+```
+
+---
+
+## License
+
+PROPRIETARY LICENSE
+
+Copyright (c) 2025 Anfernee
+
+All rights reserved.
+
+This software is confidential and proprietary. No part of this software may be copied, reproduced, modified, distributed, or used in any way without the express written permission of Anfernee.
+
+See the LICENSE.md file for more details.
+
+---
+
+## Contact
+
+**Anfernee Pichardo**
+
+[LinkedIn](https://www.linkedin.com/in/anfernee-pichardo-0787a637a/) • anfernee.developer@gmail.com
+
+Project Link: [https://github.com/AnferneeDev/OfflineRates](https://github.com/AnferneeDev/OfflineRates)
