@@ -6,6 +6,8 @@ export interface Category {
   name: string;
   created_at: string;
   updated_at: string;
+  // --- FIX 1: Add icon to local Category type ---
+  icon: string | null;
 }
 
 export interface Service {
@@ -20,9 +22,11 @@ export interface Service {
 
 export interface ServiceWithCategory extends Service {
   category_name?: string;
+  // --- FIX 2: Add category_icon to the joined type ---
+  category_icon?: string | null;
 }
 
-// Opens or creates the database file using the modern API
+// Opens or creates the database file
 function createDatabase() {
   const db = SQLite.openDatabaseSync("offline-rates.db");
   return db;
@@ -37,7 +41,9 @@ const createCategoriesTable = `
     id TEXT PRIMARY KEY NOT NULL,
     name TEXT NOT NULL UNIQUE,
     created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-    updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+    updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    -- --- FIX 3: Add icon column to local table ---
+    icon TEXT
   );
 `;
 
@@ -56,16 +62,20 @@ const createServicesTable = `
 
 /**
  * Initializes the database.
- * Creates tables if they don't exist.
  */
 export async function initDatabase(): Promise<void> {
   try {
-    // Execute table creation using modern API
+    // --- DEV FIX: Drop tables to force recreation with new schema ---
+    // This ensures the 'icon' column is added. Remove for production.
+    await db.execAsync("DROP TABLE IF EXISTS services");
+    await db.execAsync("DROP TABLE IF EXISTS categories");
+    // --- END DEV FIX ---
+
     await db.execAsync(`
       ${createCategoriesTable}
       ${createServicesTable}
     `);
-    console.log("Database tables created successfully.");
+    console.log("Database tables created successfully (schema updated).");
   } catch (error) {
     console.error("Error initializing database:", error);
     throw error;
@@ -80,7 +90,9 @@ export async function fetchLocalServices(): Promise<ServiceWithCategory[]> {
     const allRows = await db.getAllAsync<ServiceWithCategory>(`
       SELECT 
         services.*,
-        categories.name as category_name
+        categories.name as category_name,
+        -- --- FIX 4: Select the icon from the categories table ---
+        categories.icon as category_icon
       FROM services
       LEFT JOIN categories ON services.category_id = categories.id
       ORDER BY categories.name, services.name
@@ -98,6 +110,7 @@ export async function fetchLocalServices(): Promise<ServiceWithCategory[]> {
  */
 export async function fetchLocalCategories(): Promise<Category[]> {
   try {
+    // SELECT * will automatically include the new 'icon' column
     const allRows = await db.getAllAsync<Category>(`
       SELECT * FROM categories ORDER BY name
     `);
@@ -117,10 +130,11 @@ export async function upsertCategories(categories: Category[]): Promise<void> {
     await db.execAsync("BEGIN TRANSACTION");
 
     for (const category of categories) {
+      // --- FIX 5: Add 'icon' to the INSERT statement and values ---
       await db.runAsync(
-        `INSERT OR REPLACE INTO categories (id, name, created_at, updated_at) 
-         VALUES (?, ?, ?, ?)`,
-        [category.id, category.name, category.created_at, category.updated_at]
+        `INSERT OR REPLACE INTO categories (id, name, created_at, updated_at, icon) 
+         VALUES (?, ?, ?, ?, ?)`,
+        [category.id, category.name, category.created_at, category.updated_at, category.icon || null]
       );
     }
 
@@ -143,6 +157,7 @@ export async function upsertServices(services: Service[]): Promise<void> {
       await db.runAsync(
         `INSERT OR REPLACE INTO services (id, category_id, name, price, description, created_at, updated_at) 
          VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        // --- THIS WAS THE BUG: Changed second service.id to service.category_id ---
         [service.id, service.category_id, service.name, service.price, service.description || null, service.created_at, service.updated_at]
       );
     }
@@ -173,19 +188,13 @@ export async function clearAllData(): Promise<void> {
 
 /**
  * Wipes and replaces all local data with fresh data from Supabase
- * This will be used in Step D5
  */
 export async function syncDatabase(categories: Category[], services: Service[]): Promise<void> {
   try {
     console.log("Starting database sync...");
-
-    // Clear existing data
     await clearAllData();
-
-    // Insert new categories and services
     await upsertCategories(categories);
     await upsertServices(services);
-
     console.log("Database sync completed successfully.");
   } catch (error) {
     console.error("Error during database sync:", error);
@@ -203,7 +212,9 @@ export async function searchServices(query: string): Promise<ServiceWithCategory
       `
       SELECT 
         services.*,
-        categories.name as category_name
+        categories.name as category_name,
+        -- --- FIX 6: Also select icon during search ---
+        categories.icon as category_icon
       FROM services
       LEFT JOIN categories ON services.category_id = categories.id
       WHERE services.name LIKE ? OR services.description LIKE ? OR categories.name LIKE ?
@@ -253,5 +264,5 @@ export async function hasData(): Promise<boolean> {
   }
 }
 
-// Export the database instance in case you need it elsewhere
+// Export the database instance
 export { db };

@@ -1,8 +1,7 @@
 import { categories as mockCategories } from "@/src/data/services";
-// MODIFIED: Import Service type
 import { Category, fetchLocalCategories, fetchLocalServices, Service, ServiceWithCategory, syncDatabase } from "@/src/lib/database";
 import { supabase } from "@/src/lib/supabaseClient";
-import { Feather } from "@expo/vector-icons"; // This import is already here
+import { Feather } from "@expo/vector-icons";
 import { useNetInfo } from "@react-native-community/netinfo";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
@@ -14,20 +13,17 @@ const useAuth = () => ({
   logout: () => console.log("logout"),
 });
 
-// --- ServiceCard (No Changes) ---
 const ServiceCard = ({ service }: { service: ServiceWithCategory }) => (
   <View className="bg-white rounded-xl overflow-hidden shadow-sm p-4">
     <View className="flex-row justify-between items-start">
-      {/* Left Side: Details */}
       <View className="flex-1 mr-4">
         <View className="flex-row items-center gap-2 mb-1">
-          <Text className="text-xl">{mockCategories.find((c) => c.id === service.category_id)?.icon || "?"}</Text>
+          <Text className="text-xl">{service.category_icon || "?"}</Text>
           <Text className="text-xs font-medium text-zinc-500 uppercase">{service.category_name || "Uncategorized"}</Text>
         </View>
         <Text className="text-lg font-semibold mb-1">{service.name}</Text>
         {service.description && <Text className="text-sm text-zinc-700 leading-5">{service.description}</Text>}
       </View>
-      {/* Right Side: Price */}
       <View className="items-end">
         <Text className="text-2xl font-bold text-blue-500">${service.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</Text>
         <Text className="text-xs text-zinc-500">per service</Text>
@@ -35,9 +31,7 @@ const ServiceCard = ({ service }: { service: ServiceWithCategory }) => (
     </View>
   </View>
 );
-// --- END ServiceCard ---
 
-// --- Checkbox (No Changes) ---
 const Checkbox = ({ label, icon, value, onToggle }: { label: string; icon: string; value: boolean; onToggle: () => void }) => (
   <TouchableOpacity className="flex-row items-center py-3.5 border-b border-zinc-200" onPress={onToggle}>
     <View className={`w-5 h-5 border-2 rounded-md mr-4 justify-center items-center ${value ? "bg-blue-500 border-blue-500" : "border-zinc-400"}`}>{value && <Text className="text-white text-xs font-bold">✓</Text>}</View>
@@ -46,7 +40,6 @@ const Checkbox = ({ label, icon, value, onToggle }: { label: string; icon: strin
     </Text>
   </TouchableOpacity>
 );
-// --- END Checkbox ---
 
 export default function ServicesScreen() {
   const { logout } = useAuth();
@@ -56,7 +49,7 @@ export default function ServicesScreen() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [services, setServices] = useState<ServiceWithCategory[]>([]);
-  const [localCategories, setLocalCategories] = useState<{ id: string; name: string }[]>([]);
+  const [localCategories, setLocalCategories] = useState<{ id: string; name: string; icon: string | null }[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSyncing, setIsSyncing] = useState(false);
   const [isFilterModalVisible, setIsFilterModalVisible] = useState(false);
@@ -102,16 +95,16 @@ export default function ServicesScreen() {
         const [fetchedServices, fetchedCategories] = await Promise.all([fetchLocalServices(), fetchLocalCategories()]);
         console.log(`ServicesScreen: Fetched ${fetchedServices.length} services and ${fetchedCategories.length} categories locally.`);
 
-        // --- FIX: Sort services alphabetically by name ---
         const sortedServices = fetchedServices.sort((a, b) => a.name.localeCompare(b.name));
         setServices(sortedServices);
-        // --- END FIX ---
 
         const categoriesForState = fetchedCategories.length > 0 ? fetchedCategories : mockCategories;
+
         setLocalCategories(
           categoriesForState.map((cat) => ({
             id: cat.id,
             name: cat.name,
+            icon: cat.icon || null,
           }))
         );
       } catch (error) {
@@ -122,6 +115,7 @@ export default function ServicesScreen() {
           mockCategories.map((cat) => ({
             id: cat.id,
             name: cat.name,
+            icon: cat.icon || "?",
           }))
         );
       } finally {
@@ -194,14 +188,13 @@ export default function ServicesScreen() {
         <View className="flex-row justify-between items-center mb-3">
           <Text className="text-[22px] font-bold">Hospital Services</Text>
           <View className="flex-row gap-2 items-center">
-            <TouchableOpacity className="h-10 w-14 justify-center items-center rounded-lg bg-zinc-100 border border-zinc-400" onPress={handleLogout}>
+            <TouchableOpacity className="h-10 w-10 justify-center items-center rounded-lg bg-zinc-100 border border-zinc-400" onPress={handleLogout}>
               <Feather name="log-out" size={22} color="#ef4444" />
             </TouchableOpacity>
           </View>
         </View>
 
         <View className="flex-row gap-2 items-center">
-          {/* --- FIX: Replaced "🔍" emoji with Feather Icon --- */}
           <View className="flex-1 flex-row items-center bg-zinc-300 rounded-lg px-3.5 h-14">
             <Feather name="search" size={20} color="#71717a" className="mr-2" />
             <TextInput className="flex-1 h-full px-2 text-base" placeholder="Search services..." value={searchQuery} onChangeText={setSearchQuery} />
@@ -212,7 +205,6 @@ export default function ServicesScreen() {
             )}
           </View>
 
-          {/* --- FIX: Added Feather Icon to FILTER button --- */}
           <TouchableOpacity className="h-14 px-4 justify-center items-center rounded-lg bg-zinc-100 border border-zinc-400 flex-row gap-2" onPress={() => setIsFilterModalVisible(true)}>
             <Feather name="filter" size={16} color="#000000" />
             <Text className="text-sm font-semibold text-black">FILTER</Text>
@@ -220,7 +212,6 @@ export default function ServicesScreen() {
         </View>
       </View>
 
-      {/* Services List */}
       <FlatList
         data={filteredServices}
         renderItem={renderService}
@@ -246,7 +237,7 @@ export default function ServicesScreen() {
             </View>
             <ScrollView className="px-4 pb-4">
               {localCategories.map((category) => (
-                <Checkbox key={category.id} label={category.name} icon={mockCategories.find((mc) => mc.id === category.id)?.icon || "?"} value={selectedCategories.includes(category.id)} onToggle={() => handleCategoryToggle(category.id)} />
+                <Checkbox key={category.id} label={category.name} icon={category.icon || "?"} value={selectedCategories.includes(category.id)} onToggle={() => handleCategoryToggle(category.id)} />
               ))}
             </ScrollView>
             {selectedCategories.length > 0 && (
