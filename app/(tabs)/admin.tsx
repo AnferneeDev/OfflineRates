@@ -271,7 +271,7 @@ export default function AdminScreen() {
           <ScrollView className="flex-1 p-4">
             <View className="mb-5 gap-1.5">
               <Text className="text-[13px] text-zinc-500 uppercase">Service Name</Text>
-              <TextInput className="h-11 border border-zinc-300 rounded-lg px-3 text-base bg-white" value={formData.name} onChangeText={(text) => setFormData({ ...formData, name: text })} placeholder="e.g., Chest X-Ray" />
+              <TextInput className="h-13 border border-zinc-300 rounded-lg px-3 text-base bg-white" value={formData.name} onChangeText={(text) => setFormData({ ...formData, name: text })} placeholder="e.g., Chest X-Ray" />
             </View>
 
             <View className="mb-5 gap-1.5">
@@ -297,7 +297,7 @@ export default function AdminScreen() {
             <View className="mb-5 gap-1.5">
               <Text className="text-[13px] text-zinc-500 uppercase">Price ($)</Text>
               <TextInput
-                className="h-11 border border-zinc-300 rounded-lg px-3 text-base bg-white"
+                className="h-13 border border-zinc-300 rounded-lg px-3 text-base bg-white"
                 value={formData.price}
                 onChangeText={(text) => setFormData({ ...formData, price: text.replace(/[^0-9.]/g, "") })}
                 placeholder="0.00"
