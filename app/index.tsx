@@ -1,11 +1,12 @@
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { ActivityIndicator, Alert, SafeAreaView, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Alert, SafeAreaView, StatusBar, Text, TextInput, TouchableOpacity, View } from "react-native";
 
 // Import the real Supabase client
 import { supabase } from "@/src/lib/supabaseClient";
 
 // This is your new "Index" screen, which will function as the Login.
+
 export default function LoginScreen() {
   const [username, setUsername] = useState(""); // Assuming this is the email
   const [password, setPassword] = useState("");
@@ -30,7 +31,7 @@ export default function LoginScreen() {
         // Successful login!
         Alert.alert("Welcome Admin", "Successfully logged in.");
         // Navigate to the services screen
-        router.push("/services");
+        router.push("/admin");
       } else {
         // Should not happen if there's no error, but good to check
         Alert.alert("Login Failed", "No session received. Please try again.");
@@ -49,6 +50,7 @@ export default function LoginScreen() {
     try {
       // Explicitly sign out any existing session
       const { error } = await supabase.auth.signOut();
+
       if (error) {
         console.error("Error signing out:", error.message);
         Alert.alert("Error", "Could not switch to guest mode.");
@@ -65,92 +67,87 @@ export default function LoginScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="dark-content" />
-      <View style={styles.container}>
-        <View style={styles.card}>
-          {/* Card Header */}
-          <View style={styles.cardHeader}>
-            <Text style={styles.cardTitle}>Hospital Services</Text>
-            <Text style={styles.cardDescription}>Choose how you would like to access the system</Text>
-          </View>
+    <SafeAreaView className="flex-1 bg-zinc-100">
+      <StatusBar
+        barStyle="dark-content" // Use "light-content" for a dark background
+        translucent={false}
+        hidden={false}
+      />
 
+      <View className="flex-1 justify-center items-center p-4">
+        <View className="w-full max-w-[400px] bg-white rounded-xl">
+          {/* Card Header */}
+          <View className="p-6 border-b border-zinc-200 items-center">
+            <Text className="text-2xl font-semibold mb-1">Hospital Services</Text>
+            <Text className="text-sm text-zinc-500">Choose how you would like to access the system</Text>
+          </View>
           {/* Card Content */}
-          <View style={styles.cardContent}>
+          <View className="p-6">
             {/* Manual Tabs */}
-            <View style={styles.tabsList}>
+
+            <View className="flex-row w-full bg-zinc-200 rounded-lg p-1">
               <TouchableOpacity
-                style={[styles.tabButton, activeTab === "guest" && styles.tabButtonActive]}
+                className={`flex-1 py-2.5 items-center rounded-md ${activeTab === "guest" ? "bg-white" : ""}`}
                 onPress={() => setActiveTab("guest")}
                 disabled={isLoading} // Disable while loading
               >
-                <Text style={styles.tabButtonText}>(G) Guest</Text>
+                {/* --- MODIFIED: Emoji Icon & Active Color --- */}
+                <Text className={`text-sm font-medium ${activeTab === "guest" ? "text-gray-700" : "text-zinc-500"}`}>👤 Guest</Text>
               </TouchableOpacity>
+
               <TouchableOpacity
-                style={[styles.tabButton, activeTab === "admin" && styles.tabButtonActive]}
+                className={`flex-1 py-2.5 items-center rounded-md ${activeTab === "admin" ? "bg-white" : ""}`}
                 onPress={() => setActiveTab("admin")}
                 disabled={isLoading} // Disable while loading
               >
-                <Text style={styles.tabButtonText}>(A) Admin</Text>
+                {/* --- MODIFIED: Emoji Icon & Active Color --- */}
+                <Text className={`text-sm font-medium ${activeTab === "admin" ? "text-gray-700" : "text-zinc-500"}`}>🔒 Admin</Text>
               </TouchableOpacity>
             </View>
 
             {/* Tabs Content */}
+
             {activeTab === "guest" ? (
               // Guest Tab
-              <View style={styles.tabContent}>
-                <Text style={styles.guestTitle}>Browse as Guest</Text>
-                <Text style={styles.guestDescription}>View and search hospital services and prices</Text>
-                <TouchableOpacity
-                  style={[styles.button, isLoading && styles.buttonDisabled]}
-                  onPress={handleGuestLogin}
-                  disabled={isLoading} // Disable while loading
-                >
-                  <Text style={styles.buttonText}>Continue as Guest</Text>
+              <View className="mt-6 gap-4">
+                {/* --- NEW: Big Guest Icon --- */}
+                <Text className="text-6xl text-center p-3">👤</Text>
+                <Text className="text-xl font-semibold text-center">Enter as guest</Text>
+                <Text className="text-sm text-zinc-500 text-center">View and search hospital services and prices</Text>
+                {/* --- MODIFIED: Button Color --- */}
+                <TouchableOpacity className={`h-11 rounded-lg justify-center items-center ${isLoading ? "bg-zinc-400" : "bg-blue-500"}`} onPress={handleGuestLogin} disabled={isLoading}>
+                  <Text className="text-white text-base font-medium">Continue as Guest</Text>
                 </TouchableOpacity>
               </View>
             ) : (
               // Admin Tab
-              <View style={styles.tabContent}>
-                <View style={styles.inputGroup}>
-                  <Text style={styles.label}>Admin Email</Text>
+              <View className="mt-6 gap-4">
+                <View className="w-full gap-2">
+                  <Text className="text-sm font-medium text-zinc-700">Admin Email</Text>
                   <TextInput
-                    style={styles.input}
+                    className="h-13 border border-zinc-300 rounded-lg px-3 text-base bg-white"
                     placeholder="Enter admin email"
                     value={username}
                     onChangeText={setUsername}
                     autoCapitalize="none"
                     keyboardType="email-address"
-                    editable={!isLoading} // Disable input while loading
+                    editable={!isLoading}
                   />
                 </View>
-                <View style={styles.inputGroup}>
-                  <Text style={styles.label}>Password</Text>
-                  <TextInput
-                    style={styles.input}
-                    placeholder="Enter admin password"
-                    value={password}
-                    onChangeText={setPassword}
-                    secureTextEntry
-                    editable={!isLoading} // Disable input while loading
-                  />
+
+                <View className="w-full gap-2">
+                  <Text className="text-sm font-medium text-zinc-700">Password</Text>
+                  <TextInput className="h-13 border border-zinc-300 rounded-lg px-3 text-base bg-white" placeholder="Enter admin password" value={password} onChangeText={setPassword} secureTextEntry editable={!isLoading} />
                 </View>
 
                 {/* Security Warning - You might remove this later */}
-                <View style={styles.warningBox}>
-                  <Text style={styles.warningText}>Ensure you have created an admin user in your Supabase project.</Text>
+                <View className="bg-red-50 border border-red-200 rounded-lg p-3">
+                  <Text className="text-red-500 text-xs text-center">Ensure you have created an admin user in your Supabase project.</Text>
                 </View>
 
-                <TouchableOpacity
-                  style={[styles.button, isLoading && styles.buttonDisabled]}
-                  onPress={handleAdminLogin}
-                  disabled={isLoading} // Disable button while loading
-                >
-                  {isLoading ? (
-                    <ActivityIndicator color="#ffffff" /> // Show spinner
-                  ) : (
-                    <Text style={styles.buttonText}>Login as Admin</Text>
-                  )}
+                {/* --- MODIFIED: Button Color --- */}
+                <TouchableOpacity className={`h-11 rounded-lg justify-center items-center ${isLoading ? "bg-zinc-400" : "bg-blue-500"}`} onPress={handleAdminLogin} disabled={isLoading}>
+                  {isLoading ? <ActivityIndicator color="#ffffff" /> : <Text className="text-white text-base font-medium">Login as Admin</Text>}
                 </TouchableOpacity>
               </View>
             )}
@@ -160,131 +157,3 @@ export default function LoginScreen() {
     </SafeAreaView>
   );
 }
-
-// Styles remain the same, adding styles for disabled state
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: "#f4f4f5",
-  },
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 16,
-  },
-  card: {
-    width: "100%",
-    maxWidth: 400,
-    backgroundColor: "#ffffff",
-    borderRadius: 12,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 5,
-  },
-  cardHeader: {
-    padding: 24,
-    borderBottomWidth: 1,
-    borderBottomColor: "#e4e4e7",
-    alignItems: "center",
-  },
-  cardTitle: {
-    fontSize: 24,
-    fontWeight: "600",
-    marginBottom: 4,
-  },
-  cardDescription: {
-    fontSize: 14,
-    color: "#71717a",
-  },
-  cardContent: {
-    padding: 24,
-  },
-  tabsList: {
-    flexDirection: "row",
-    width: "100%",
-    backgroundColor: "#e4e4e7",
-    borderRadius: 8,
-  },
-  tabButton: {
-    flex: 1,
-    paddingVertical: 10,
-    alignItems: "center",
-    borderRadius: 6,
-  },
-  tabButtonActive: {
-    backgroundColor: "#ffffff",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  tabButtonText: {
-    fontSize: 14,
-    fontWeight: "500",
-  },
-  tabContent: {
-    marginTop: 24,
-    gap: 16,
-  },
-  guestTitle: {
-    fontSize: 20,
-    fontWeight: "600",
-    textAlign: "center",
-    marginBottom: 8,
-  },
-  guestDescription: {
-    fontSize: 14,
-    color: "#71717a",
-    textAlign: "center",
-    marginBottom: 16,
-  },
-  inputGroup: {
-    width: "100%",
-    gap: 8,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: "500",
-    color: "#3f3f46",
-  },
-  input: {
-    height: 44,
-    borderWidth: 1,
-    borderColor: "#d4d4d8",
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    fontSize: 16,
-    backgroundColor: "#ffffff", // Ensure background for disabled state
-  },
-  button: {
-    height: 44,
-    backgroundColor: "#09090b",
-    borderRadius: 8,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  buttonDisabled: {
-    backgroundColor: "#a1a1aa", // Gray out button when loading
-  },
-  buttonText: {
-    color: "#ffffff",
-    fontSize: 16,
-    fontWeight: "500",
-  },
-  warningBox: {
-    backgroundColor: "rgba(239, 68, 68, 0.1)",
-    borderColor: "rgba(239, 68, 68, 0.2)",
-    borderWidth: 1,
-    borderRadius: 8,
-    padding: 12,
-  },
-  warningText: {
-    color: "#ef4444",
-    fontSize: 12,
-    textAlign: "center",
-  },
-});
