@@ -71,7 +71,7 @@ export default function LoginScreen() {
       <StatusBar
         barStyle="dark-content" // Use "light-content" for a dark background
         translucent={false}
-        hidden={true}
+        hidden={false}
       />
 
       <View className="flex-1 justify-center items-center p-4">
