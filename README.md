@@ -1,207 +1,239 @@
-OfflineRates
+# OfflineRates
 
 <div align="center">
 
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-offlinerates.vercel.app-brightgreen?style=for-the-badge)](https://offlinerates.vercel.app)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/anfernee-pichardo-0787a637a/)
+![React Native](https://img.shields.io/badge/React%20Native-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
+![Expo](https://img.shields.io/badge/Expo-000020?style=for-the-badge&logo=expo&logoColor=white)
+![Supabase](https://img.shields.io/badge/Supabase-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white)
+![SQLite](https://img.shields.io/badge/SQLite-003B57?style=for-the-badge&logo=sqlite&logoColor=white)
+![NativeWind](https://img.shields.io/badge/NativeWind-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
+![License](https://img.shields.io/badge/License-Proprietary-red.svg?style=for-the-badge)
+
 </div>
 
-📖 Table of Contents
+---
 
-About The Project
+## Table of Contents
 
-Core Features
+- [About The Project](#about-the-project)
 
-Tech Stack
+- [Core Features](#core-features)
 
-Getting Started
+- [Tech Stack](#tech-stack)
 
-Database Setup
+- [Getting Started](#getting-started)
 
-License
+- [Database Setup](#database-setup)
 
-Contact
+- [License](#license)
 
-🎯 About The Project
+- [Contact](#contact)
+
+---
+
+## About The Project
 
 OfflineRates is a mobile application for browsing hospital service prices. It is designed to be offline-first, syncing with a central Supabase database when an internet connection is available, but storing all data locally in an SQLite database for high performance and 100% offline access.
 
-The app features two primary roles: a public-facing "Guest" mode for browsing, and a secure "Admin" mode for managing the services and categories.
+It features two primary roles: a public-facing "Guest" mode for browsing, and a secure "Admin" mode for managing the services and categories.
 
-✨ Core Features
+---
 
-Offline-First Architecture: All data is stored in a local SQLite database, allowing the app to be fully functional without an internet connection.
+## Core Features
 
-Online/Offline Sync: Automatically detects network status. When online, it syncs the local database with the remote Supabase backend.
+- **Offline-First Architecture**: All data is stored in a local SQLite database, allowing the app to be fully functional without an internet connection.
 
-Guest & Admin Roles:
+- **Online/Offline Sync**: Automatically detects network status. When online, it syncs the local database with the remote Supabase backend.
 
-Guest View: A public, read-only interface for browsing and filtering hospital services.
+- **Guest & Admin Roles**:
 
-Admin Dashboard: A secure panel (requires Supabase Auth) for Creating, Reading, Updating, and Deleting (CRUD) services and categories.
+- _Guest View_: A public, read-only interface for browsing and filtering hospital services.
 
-Dynamic Search & Filtering: Fast, client-side search and multi-category filtering powered by local data.
+- _Admin Dashboard_: A secure panel (requires Supabase Auth) for Creating, Reading, Updating, and Deleting (CRUD) services and categories.
 
-Cross-Platform: Built with React Native (Expo) to run natively on both iOS and Android from a single codebase.
+- **Dynamic Search & Filtering**: Fast, client-side search and multi-category filtering powered by local data.
 
-🛠️ Tech Stack
+- **Cross-Platform**: Built with React Native (Expo) to run natively on both iOS and Android from a single codebase.
 
-Framework: React Native (Expo)
+---
 
-Database (Remote): Supabase (PostgreSQL)
+## Tech Stack
 
-Database (Local): Expo-SQLite
+- Framework: React Native (Expo)
 
-Styling: NativeWind (Tailwind for React Native)
+- Database (Remote): Supabase (PostgreSQL)
 
-Language: TypeScript
+- Database (Local): Expo-SQLite
 
-Auth: Supabase Auth
+- Styling: NativeWind (Tailwind for React Native)
 
-💻 Getting Started (For Developers)
+- Language: TypeScript
 
-Prerequisites
+- Auth: Supabase Auth
 
-Node.js (v18 or higher)
+---
 
-npm or yarn
+## Getting Started
 
-Expo Go app on your mobile device (or an emulator)
+### Prerequisites
 
-A Supabase project
+- Node.js (v18 or higher)
 
-Installation & Development
+- npm or yarn
 
-Clone the repository
+- Expo Go app on your mobile device (or an emulator)
 
-git clone [https://github.com/](https://github.com/)[YourGitHub]/OfflineRates.git
-cd OfflineRates
+- A Supabase project
 
-Install dependencies
+### Local Setup
 
-npm install
+# Clone the repository
 
-Set up Environment Variables
+`git clone https://github.com/AnferneeDev/OfflineRates.git`
 
-You must have a Supabase project set up. Find your project's URL and Anon Key and add them to your project. (e.g., in src/lib/supabaseClient.ts or a .env file).
+# Navigate to the project directory
 
-Your supabaseClient.ts should look like this:
+`cd OfflineRates`
 
-const supabaseUrl = "https://YOUR_SUPABASE_URL.supabase.co";
-const supabaseAnonKey = "YOUR_SUPABASE_ANON_KEY";
+# Install dependencies
 
-export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
-// ...
-});
+`npm install`
 
-Start the app
+### Environment Variables
 
-npx expo start
+You must have a Supabase project set up. Find your project's URL and Anon Key and add them to your project (e.g., in `src/lib/supabaseClient.ts` or a `.env` file).
+
+```ts
+const  supabaseUrl = "https://YOUR_SUPABASE_URL.supabase.co";
+const  supabaseAnonKey = "YOUR_SUPABASE_ANON_KEY";
+
+export  const  supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
+```
+
+### Run Development Server
+
+`npx  expo  start`
 
 Scan the QR code with the Expo Go app on your phone.
 
-🗃️ Database Setup
+---
 
-The app relies on a specific schema in Supabase. All tables should be created in the app schema.
+## Database Setup
 
-Schemas
+The app relies on a specific schema in Supabase. All tables should be created in the `app` schema.
 
-Here are the SQL commands to create the required tables in your Supabase project. You can run this in the Supabase SQL Editor.
+### Categories Table
 
-Categories Table:
+```
+`sql
 
-create table app.categories (
-id uuid not null default gen_random_uuid (),
-name text not null,
-created_at timestamp with time zone null default now(),
-updated_at timestamp with time zone null default now(),
-icon text null,
-constraint categories_pkey primary key (id),
-constraint categories_name_key unique (name)
+create  table  app.categories (
+
+id  uuid  not  null  default  gen_random_uuid (),
+
+name  text  not  null,
+
+created_at  timestamp  with  time  zone  null  default  now(),
+
+updated_at  timestamp  with  time  zone  null  default  now(),
+
+icon  text  null,
+
+constraint  categories_pkey  primary  key (id),
+
+constraint  categories_name_key  unique (name)
+
 );
 
-Services Table:
+```
 
-create table app.services (
-id uuid not null default gen_random_uuid (),
-category_id uuid null,
-name text not null,
-price numeric(10, 2) not null,
-description text null,
-created_at timestamp with time zone null default now(),
-updated_at timestamp with time zone null default now(),
-constraint services_pkey primary key (id),
-constraint services_category_id_fkey foreign KEY (category_id) references app.categories (id) on delete set null
+### Services Table
+
+```
+`sql
+
+create  table  app.services (
+
+id  uuid  not  null  default  gen_random_uuid (),
+
+category_id  uuid  null,
+
+name  text  not  null,
+
+price  numeric(10, 2) not  null,
+
+description  text  null,
+
+created_at  timestamp  with  time  zone  null  default  now(),
+
+updated_at  timestamp  with  time  zone  null  default  now(),
+
+constraint  services_pkey  primary  key (id),
+
+constraint  services_category_id_fkey  foreign  key (category_id) references  app.categories (id) on  delete  set  null
+
 );
 
-How to Add Data to Supabase
+```
 
-You can add data manually or by uploading a CSV file.
+### Adding Data
 
-1. Manual Entry (Supabase Table Editor)
+- **Manual Entry**: Use Supabase Table Editor to insert rows into `categories` and `services`.
 
-Go to the Table Editor in your Supabase project.
+- **CSV Import (Recommended)**:
 
-Select the categories table.
+- Import `categories.csv` first, then `services.csv`.
 
-Click + Insert row.
+Example `categories.csv`:
 
-Fill in the name (e.g., "Cardiology") and icon (e.g., "❤️").
-
-Repeat for all your categories.
-
-Select the services table and add a new row.
-
-Fill in the name, price, description, and select the correct category_id from the dropdown list.
-
-2. Using CSV Import (Recommended)
-
-This is the fastest way to add a lot of data. You must import categories first.
-
-Step 1: Import Categories
-
-Navigate to the categories table in the Supabase Table Editor.
-
-Click the "Import" button (small grid icon).
-
-Upload your categories.csv file.
-
-Make sure all columns match and import the data.
-
-Example categories.csv:
-
+```
+`csv
 id,name,icon
+
 f47ac10b-58cc-4372-a567-0e02b2c3d479,Cardiology,❤️
+
 3d4bc659-2815-4f0c-bf55-b541173a51fa,Radiology,☢️
+
 5e8a4a22-5e87-4d1c-8b8a-3d5f3a0c0e3f,Neurology,🧠
 
-Step 2: Import Services
+```
 
-Navigate to the services table.
+Example `services.csv`:
 
-Click "Import" and upload your services.csv file.
-
-Crucially, make sure the category_id column in your CSV contains the correct UUIDs that you just imported in Step 1.
-
-Example services.csv:
+```
+`csv
 
 category_id,name,price,description
-f47ac10b-58cc-4372-a567-0e02b2c3d479,Echocardiogram,350.00,"Ultrasound of the heart"
-3d4bc659-2815-4f0c-bf55-b541173a51fa,Chest X-Ray,180.00,"Standard two-view chest X-ray"
 
-📜 License
+f47ac10b-58cc-4372-a567-0e02b2c3d479,Echocardiogram,350.00,"Ultrasound of the heart"
+
+3d4bc659-2815-4f0c-bf55-b541173a51fa,Chest  X-Ray,180.00,"Standard two-view chest X-ray"
+
+```
+
+---
+
+## License
 
 PROPRIETARY LICENSE
 
 Copyright (c) 2025 Anfernee
+
 All rights reserved.
 
-This software is confidential and proprietary. No part of this software
-may be copied, reproduced, modified, distributed, or used in any way without
-the express written permission of Anfernee.
+This software is confidential and proprietary. No part of this software may be copied, reproduced, modified, distributed, or used in any way without the express written permission of Anfernee.
 
 See the LICENSE.md file for more details.
 
-📧 Contact
+---
 
-Anfernee Pichardo • LinkedIn • anfernee.developer@gmail.com
+## Contact
 
-Project Link: https://github.com/AnferneeDev/OfflineRates
+**Anfernee Pichardo**
+
+[LinkedIn](https://www.linkedin.com/in/anfernee-pichardo-0787a637a/) • anfernee.developer@gmail.com
+
+Project Link: [https://github.com/AnferneeDev/OfflineRates](https://github.com/AnferneeDev/OfflineRates)
