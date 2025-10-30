@@ -1,32 +1,16 @@
 # OfflineRates
 
-<div  align="center">
+<div align="center">
 
 [![Live Demo](https://img.shields.io/badge/Live%20Demo-offlinerates.vercel.app-brightgreen?style=for-the-badge)](https://offlinerates.vercel.app)
-
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/anfernee-pichardo-0787a637a/)
-
 ![React Native](https://img.shields.io/badge/React%20Native-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
-
 ![Expo](https://img.shields.io/badge/Expo-000020?style=for-the-badge&logo=expo&logoColor=white)
-
 ![Supabase](https://img.shields.io/badge/Supabase-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white)
-
 ![SQLite](https://img.shields.io/badge/SQLite-003B57?style=for-the-badge&logo=sqlite&logoColor=white)
-
 ![NativeWind](https://img.shields.io/badge/NativeWind-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)
-
 ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
-
 ![License](https://img.shields.io/badge/License-Proprietary-red.svg?style=for-the-badge)
-
-</div>
-
----
-
-<div  align="center">
-
-### [View Live Demo](https://offlinerates.vercel.app)
 
 </div>
 
