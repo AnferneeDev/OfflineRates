@@ -6,22 +6,21 @@ import React, { useEffect, useState } from "react";
 import { ActivityIndicator, View } from "react-native";
 
 /**
- * This is the main layout for the (tabs) route group.
- * Its primary job is to manage user authentication state.
- * It shows a loading screen while checking for a session,
- * and it redirects the user if they sign out.
+ * Manages the main tab navigation and a global authentication state.
+ * It ensures that auth is checked before rendering tabs and handles
+ * redirects on sign-out.
  */
 export default function TabLayout() {
+  // 'session' tracks the user's login state.
+  // 'loading' is true only during the initial session check.
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
-    // This effect runs once on mount to check and listen for auth changes.
-    console.log("TabLayout mounted, fetching session...");
-
+    // This effect runs on mount to fetch the current session
+    // and set up a listener for any auth changes (like SIGN_IN or SIGN_OUT).
     const fetchSession = async () => {
-      // Check for an active session when the app first loads.
       try {
         const {
           data: { session },
@@ -30,36 +29,29 @@ export default function TabLayout() {
       } catch (e) {
         console.error("Exception fetching session:", e);
       } finally {
-        // We're done checking, so stop the loading spinner.
         setLoading(false);
       }
     };
 
     fetchSession();
 
-    // Listen for real-time auth events (e.g., SIGNED_IN, SIGNED_OUT).
     const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
-      console.log("Auth state changed:", _event, session ? "Session exists" : "Session null");
       setSession(session);
-
-      // If the user signs out, redirect them to the home/login screen.
       if (_event === "SIGNED_OUT") {
-        // Use setImmediate to ensure navigation happens *after* this render cycle.
+        // Use setImmediate to prevent navigation state conflicts.
         setImmediate(() => {
           router.replace("/");
         });
       }
     });
 
-    // Clean up the auth listener when the component unmounts to prevent memory leaks.
+    // Cleanup the listener on component unmount.
     return () => {
-      console.log("TabLayout unmounting, unsubscribing listener");
       authListener?.subscription.unsubscribe();
     };
-  }, [router]); // We include router here as it's an external dependency.
+  }, [router]);
 
-  // Show a loading spinner while checking the session.
-  // This prevents a "flash" of the login screen if the user is already authenticated.
+  // Shows a loading indicator while the initial session is being verified.
   if (loading) {
     return (
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
@@ -68,12 +60,12 @@ export default function TabLayout() {
     );
   }
 
+  // Renders the tab navigator.
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-        // This is the global rule: hide the *entire tab bar* if there is no
-        // session (i.e., user is logged out and will be on the login screen).
+        // Hides the entire tab bar if the user is not authenticated.
         tabBarStyle: session ? {} : { display: "none" },
       }}
     >
@@ -82,20 +74,16 @@ export default function TabLayout() {
         options={{
           title: "Services",
           tabBarIcon: ({ color, size }) => <Feather name="list" size={size} color={color} />,
-          // This screen will use the default tabBarStyle (visible when logged in).
         }}
       />
       <Tabs.Screen
         name="admin"
         options={{
           title: "Admin",
-          // By setting href to null, the tab is completely removed from the bar
-          // if the user isn't logged in.
+          // Conditionally removes this tab from the bar if not logged in.
           href: session ? "/admin" : null,
           tabBarIcon: ({ color, size }) => <Feather name="settings" size={size} color={color} />,
-          // This is a local rule: hide the tab bar *when the user is on this tab*.
-          // This is useful if "admin" is a stack navigator and you don't want
-          // tabs visible on its child screens.
+          // Hides the tab bar *when on* this specific screen.
           tabBarStyle: { display: "none" },
         }}
       />
