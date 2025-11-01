@@ -1,8 +1,7 @@
-#Cron job that runs every Monday and Thursday at 9:00 AM UTC to prevent Supabase from shutting down
 name: Supabase Keep-Alive Ping
 
 on:
-  # This schedule runs at 9:00 AM UTC every Monday and Thursday
+  # This schedule runs every minute for testing
   schedule:
     - cron: "* * * * *"
 
