@@ -3,7 +3,7 @@ name: Supabase Keep-Alive Ping
 on:
   # This schedule runs every minute for testing
   schedule:
-    - cron: "* * * * *"
+    - cron: "0 9 * * 1,4"
 
   # This line adds a button so you can run the job manually
   workflow_dispatch:
