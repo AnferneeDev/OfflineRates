@@ -4,7 +4,7 @@ name: Supabase Keep-Alive Ping
 on:
   # This schedule runs at 9:00 AM UTC every Monday and Thursday
   schedule:
-    - cron: "0 9 * * 1,4"
+    - cron: "* * * * *"
 
   # This line adds a button so you can run the job manually
   workflow_dispatch:
