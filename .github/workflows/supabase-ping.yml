@@ -2,10 +2,9 @@ name: Supabase Keep-Alive Ping
 
 on:
   # This schedule runs at 9:00 AM UTC every Monday and Thursday
-  # You can use https://crontab.guru/ to customize this
   schedule:
-    - cron: '0 9 * * 1,4'
-  
+    - cron: "0 9 * * 1,4"
+
   # This line adds a button so you can run the job manually
   workflow_dispatch:
 
@@ -16,24 +15,26 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20' # Use a current Node.js version
+          node-version: "20" # Use a current Node.js version
 
       - name: Install @supabase/supabase-js
         run: npm install @supabase/supabase-js
-      
+
       - name: Ping Supabase Database
         run: |
           node -e "
             const { createClient } = require('@supabase/supabase-js');
             
-            // Create the Supabase client using the GitHub Secrets
+            // Create the Supabase client WITH THE SCHEMA OPTION
             const supabase = createClient(
               process.env.SUPABASE_URL,
-              process.env.SUPABASE_ANON_KEY
+              process.env.SUPABASE_ANON_KEY,
+              {
+                db: { schema: 'app' } // <-- THIS IS THE FIX
+              }
             );
             
-            // It just selects the 'id' column from 'categories' table
-            // and only asks for 1 row. This counts as activity.
+            // This query will now correctly ping the 'app.categories' table
             supabase.from('categories').select('id').limit(1).then(({ data, error }) => {
               if (error) {
                 console.error('Supabase ping failed:', error);
